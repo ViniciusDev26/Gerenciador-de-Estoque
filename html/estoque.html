@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Produto</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .btn-primary {
+            margin-right: 10px;
+        }
+        .feedback {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Formulário de Adicionar Produto -->
+        <form id="formularioProduto">
+            <h1 class="my-4 text-center">Adicionar Produto</h1>
+            
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="nome_produto_add">Nome do Produto:</label>
+                    <input type="text" class="form-control" id="nome_produto_add" name="nome_produto" placeholder="Digite o nome do produto" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="quantidade_total_add">Quantidade Total (Estoque):</label>
+                    <input type="number" class="form-control" id="quantidade_total_add" name="quantidade_total" min="1" placeholder="Digite a quantidade total" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="custo_add">Custo:</label>
+                    <input type="number" class="form-control" id="custo_add" name="custo" step="0.01" min="0.01" placeholder="Digite o custo" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="preco_add">Valor de Venda:</label>
+                    <input type="number" class="form-control" id="preco_add" name="preco" step="0.01" min="0.01" placeholder="Digite o valor de venda" required>
+                </div>
+            </div>
+            
+            <div class="form-group text-center">
+                <button type="button" class="btn btn-secondary" onclick="voltar()">Voltar</button>
+                <button type="submit" class="btn btn-primary" id="adicionarProdutoBtn">Adicionar Produto</button>
+            </div>
+
+            <div class="alert alert-success feedback" id="successMessage" role="alert" aria-live="assertive">
+                Produto adicionado com sucesso!
+            </div>
+            <div class="alert alert-danger feedback" id="errorMessage" role="alert" aria-live="assertive">
+                Erro ao adicionar produto. Tente novamente.
+            </div>
+        </form>
+    </div>
+
+    <!-- Bootstrap JS e dependências -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        function voltar() {
+            window.location.href = 'estoque2.html'; // Redireciona para a tela anterior
+        }
+
+        document.getElementById('formularioProduto').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Evita o comportamento padrão de envio do formulário
+
+            const adicionarProdutoBtn = document.getElementById('adicionarProdutoBtn');
+            adicionarProdutoBtn.disabled = true; // Desativa o botão para evitar múltiplos envios
+
+            const nomeProduto = document.getElementById('nome_produto_add').value;
+            const quantidadeTotal = document.getElementById('quantidade_total_add').value;
+            const preco = document.getElementById('preco_add').value;
+            const custo = document.getElementById('custo_add').value;
+
+            try {
+                // Envia os dados para o servidor via fetch
+                const response = await fetch('http://localhost:5051/adicionar-produto', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nome_produto: nomeProduto,
+                        quantidade_total: parseInt(quantidadeTotal),
+                        preco: parseFloat(preco),
+                        custo: parseFloat(custo)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao adicionar produto');
+                }
+
+                // Limpa o formulário após o envio bem-sucedido
+                document.getElementById('formularioProduto').reset();
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none';
+            } catch (error) {
+                console.error('Erro na requisição:', error.message);
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('successMessage').style.display = 'none';
+            } finally {
+                adicionarProdutoBtn.disabled = false; // Reativa o botão após a tentativa de envio
+            }
+        });
+    </script>
+</body>
+</html>

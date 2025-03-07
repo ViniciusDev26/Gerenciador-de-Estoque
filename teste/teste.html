@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Venda</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+        .loading {
+            display: none;
+            font-size: 18px;
+            color: #007bff;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+        .success {
+            color: green;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registrar Venda</h1>
+
+        <!-- Mensagens de Feedback -->
+        <div id="feedback" class="success"></div>
+        <div id="errorFeedback" class="error"></div>
+
+        <!-- Buscar Produto -->
+        <div id="buscarProdutoContainer">
+            <h2>Buscar Produto</h2>
+            <form id="formularioBusca">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="nome_produto" placeholder="Digite o nome do produto" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Buscar</button>
+                <button type="button" class="btn btn-secondary" onclick="voltar()">Voltar</button>
+            </form>
+            <div id="loading" class="loading">Carregando...</div>
+            <div id="errorBusca" class="error"></div>
+            <table class="table table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>ID Produto</th>
+                        <th>Nome do Produto</th>
+                        <th>Preço</th>
+                        <th>Quantidade</th>
+                        <th>Seleção</th>
+                    </tr>
+                </thead>
+                <tbody id="produtoTableBody">
+                    <!-- Dados dos produtos serão inseridos aqui -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Registrar Venda -->
+        <div id="vendaFormContainer" style="display: none;">
+            <h2>Registrar Venda</h2>
+            <form id="formularioVenda">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <input type="hidden" id="cliente_id" name="cliente_id" value="1">
+                        <label for="nome_cliente">Nome do Cliente</label>
+                        <input type="text" class="form-control" id="nome_cliente" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="telefone">Telefone do Cliente</label>
+                        <input type="tel" class="form-control" id="telefone" placeholder="Digite o telefone do cliente" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="rua">Rua</label>
+                        <input type="text" class="form-control" id="rua" placeholder="Digite a rua" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="numero">Número</label>
+                        <input type="text" class="form-control" id="numero" placeholder="Digite o número" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="tipo_cliente">Tipo de Cliente</label>
+                        <select class="form-control" id="tipo_cliente" required>
+                            <option value="olx">OLX</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="instagram">Instagram</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="nome_produto_selecionado">Produtos Selecionados</label>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>ID Produto</th>
+                                <th>Nome do Produto</th>
+                                <th>Preço</th>
+                                <th>Quantidade</th>
+                                <th>Remover</th>
+                            </tr>
+                        </thead>
+                        <tbody id="produtosSelecionadosTableBody">
+                            <!-- Produtos selecionados serão inseridos aqui -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label for="metodo_pagamento">Método de Pagamento</label>
+                        <select class="form-control" id="metodo_pagamento" required>
+                            <option value="Cartão">Cartão</option>
+                            <option value="Pix">Pix</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="taxa_entrega">Taxa de Entrega</label>
+                        <input type="number" class="form-control" id="taxa_entrega" step="0.01" required>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="valor_total">Valor Total</label>
+                        <input type="number" class="form-control" id="valor_total" step="0.01" readonly>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Registrar Venda</button>
+            </form>
+        </div>
+
+        <script>
+            const produtosSelecionados = [];
+
+            // Função Voltar
+            function voltar() {
+                window.location.href = '/tela1.html';
+            }
+
+            // Buscar Produto
+            document.getElementById('formularioBusca').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const nome_produto = document.getElementById('nome_produto').value.trim();
+                if (!nome_produto) return;
+
+                const tableBody = document.getElementById('produtoTableBody');
+                tableBody.innerHTML = '';
+                document.getElementById('loading').style.display = 'block';
+
+                try {
+                    const response = await fetch(`http://localhost:5051/buscar-produto?nome_produto=${encodeURIComponent(nome_produto)}`);
+                    if (!response.ok) throw new Error('Erro ao buscar produto');
+                    
+                    const data = await response.json();
+                    if (data.length === 0) {
+                        document.getElementById('errorBusca').textContent = 'Nenhum produto encontrado';
+                        return;
+                    }
+
+                    data.forEach(produto => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${produto.Produto_ID}</td>
+                            <td>${produto.Nome_Produto}</td>
+                            <td>${produto.Preco}</td>
+                            <td>${produto.Quantidade_Total}</td>
+                            <td><button class="btn btn-secondary" onclick='selecionarProduto(${JSON.stringify(produto)})'>Selecionar</button></td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } catch (error) {
+                    console.error('Erro na requisição:', error);
+                    document.getElementById('errorBusca').textContent = 'Erro ao buscar produto';
+                } finally {
+                    document.getElementById('loading').style.display = 'none';
+                }
+            });
+
+            // Selecionar Produto
+            function selecionarProduto(produto) {
+                produto.quantidadeSelecionada = 1;
+                produto.Nome_Produto = produto.Nome_Produto || 'Produto Desconhecido';
+                produto.Custo = produto.Custo || 0;
+        
+                produtosSelecionados.push(produto);
+                atualizarProdutosSelecionados();
+                document.getElementById('vendaFormContainer').style.display = 'block';
+            }
+            
+            function atualizarProdutosSelecionados() {
+                const tableBody = document.getElementById('produtosSelecionadosTableBody');
+                tableBody.innerHTML = '';
+                produtosSelecionados.forEach((produto, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${produto.Produto_ID}</td>
+                        <td>${produto.Nome_Produto}</td>
+                        <td>${produto.Preco}</td>
+                        <td><input type="number" min="1" value="1" onchange="atualizarQuantidade(${index}, this.value)" /></td>
+                        <td><button class="btn btn-danger" onclick="removerProduto(${index})">Remover</button></td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                calcularValorTotal();
+            }
+
+            function atualizarQuantidade(index, quantidade) {
+                if (quantidade < 1) quantidade = 1;
+                produtosSelecionados[index].quantidadeSelecionada = quantidade;
+                calcularValorTotal();
+            }
+
+            function removerProduto(index) {
+                produtosSelecionados.splice(index, 1);
+                atualizarProdutosSelecionados();
+            }
+
+            function calcularValorTotal() {
+                const total = produtosSelecionados.reduce((acc, produto) => {
+                    return acc + (produto.Preco * produto.quantidadeSelecionada);
+                }, 0);
+                document.getElementById('valor_total').value = total.toFixed(2);
+            }
+
+            // Registrar Venda
+            document.getElementById('formularioVenda').addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                const vendaData = {
+                    cliente_id: document.getElementById('cliente_id').value,
+                    nome_cliente: document.getElementById('nome_cliente').value,
+                    telefone: document.getElementById('telefone').value,
+                    rua: document.getElementById('rua').value,
+                    numero: document.getElementById('numero').value,
+                    tipo_cliente: document.getElementById('tipo_cliente').value,
+                    produtos: produtosSelecionados,
+                    metodo_pagamento: document.getElementById('metodo_pagamento').value,
+                    taxa_entrega: parseFloat(document.getElementById('taxa_entrega').value),
+                    valor_total: parseFloat(document.getElementById('valor_total').value)
+                };
+
+                try {
+                    const response = await fetch('http://localhost:5051/registrar-venda', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(vendaData)
+                    });
+
+                    if (!response.ok) throw new Error('Erro ao registrar venda');
+
+                    document.getElementById('feedback').textContent = 'Venda registrada com sucesso!';
+                    document.getElementById('errorFeedback').textContent = '';
+                    document.getElementById('formularioVenda').reset();
+                    produtosSelecionados.length = 0;
+                    atualizarProdutosSelecionados();
+                } catch (error) {
+                    document.getElementById('errorFeedback').textContent = 'Erro ao registrar venda';
+                    document.getElementById('feedback').textContent = '';
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

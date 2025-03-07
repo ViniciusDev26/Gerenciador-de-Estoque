@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Vendas</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Lista de Vendas</h1>
+
+        <div class="form-group">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Cliente_ID</th>
+                        <th>Nome do Cliente</th>
+                        <th>Telefone</th>
+                        <th>Tipo do Cliente</th>
+                    </tr>
+                </thead>
+                <tbody id="tableShowVendas">
+                    <!-- As vendas serão inseridas aqui -->
+                </tbody>
+            </table>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="inicio()">Inicio</button>
+    </div>
+
+    <script>
+
+        function inicio(){
+            window.location.href = 'index.html'; 
+        }
+        // Função para carregar as vendas do servidor
+        async function carregarVendas() {
+            const tableBody = document.getElementById('tableShowVendas');
+
+            try {
+                const response = await fetch('http://localhost:5051/buscar-vendas');
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar vendas');
+                }
+ 
+                const data = await response.json();
+                console.log('Vendas encontradas:', data);
+
+                // Limpa o corpo da tabela antes de adicionar novas linhas
+                tableBody.innerHTML = '';
+
+                // Adiciona cada venda como uma nova linha na tabela
+                data.forEach(venda => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${venda.Venda_ID}</td>
+                        <td>${venda.Nome_cliente}</td>
+                        <td>${venda.Telefone}</td>
+                        <td>${venda.Tipo_Cliente}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Erro na requisição:', error.message);
+                alert('Erro ao buscar vendas');
+            }
+        }
+
+        // Chama a função para carregar as vendas ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarVendas();
+        });
+    </script>
+</body>
+</html>

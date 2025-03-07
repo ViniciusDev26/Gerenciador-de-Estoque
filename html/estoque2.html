@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Document</title>
+    <style>
+        .container {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        form {
+            max-width: 600px;
+            margin: auto;
+        }
+        .tabela-produtos {
+            display: none; /* Inicia oculta */
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Formulário de Busca de Produto -->
+        <h1 class="my-4">Buscar produto</h1>
+        <form id="formularioBusca">
+            <div class="form-group">
+                <input type="text" class="form-control" id="nome_produto" placeholder="Digite o nome do produto" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            <button type="button" class="btn btn-secondary" onclick="cadastro()">Cadastrar Produto</button>
+            <button type="button" class="btn btn-primary" onclick="inicio()">Inicio</button>
+        </form>
+        
+        <!-- Tabela de Produtos (inicialmente oculta) -->
+        <div class="tabela-produtos">
+            <h1 class="my-4">Lista de Produtos</h1>
+            <table class="table table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Nome do Produto</th>
+                        <th scope="col">Quantidade Total</th>
+                        <th scope="col">Custo</th>
+                        <th scope="col">Valor Venda</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaProdutosBody">
+                    <!-- Aqui serão adicionadas as linhas da tabela com JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+
+    <script>
+        function cadastro(){
+            window.location.href = 'estoque.html'; 
+        }
+
+        function inicio(){
+            window.location.href = 'index.html'; 
+        }
+
+        document.getElementById('formularioBusca').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Evita o comportamento padrão de envio do formulário
+
+            const nome_produto = document.getElementById('nome_produto').value;
+            const tableBody = document.getElementById('tabelaProdutosBody'); 
+            tableBody.innerHTML = ''; // Limpa resultados anteriores
+
+            try {
+                const response = await fetch(`http://localhost:5051/buscar-produto?nome_produto=${encodeURIComponent(nome_produto)}`);
+            
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar produto');
+                }
+            
+                const data = await response.json();
+                console.log('Produtos encontrados:', data); // Verifica se os dados foram recebidos corretamente
+                console.log('Será?',data);
+            
+                if (data.length === 0) {
+                    alert('Nenhum produto encontrado');
+                    return;
+                }
+
+                // Torna a tabela visível
+                document.querySelector('.tabela-produtos').style.display = 'block';
+            
+                data.forEach(produto => {
+                    console.log('Produto:', produto); // Verifica cada produto antes de inserir na tabela
+            
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${produto.Nome_Produto}</td>
+                        <td>${produto.Quantidade_Total}</td>
+                        <td>${produto.Preco}</td>
+                        <td>${produto.Custo}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Erro na requisição:', error.message);
+                alert('Erro ao buscar produto');
+            }
+        });
+    </script>
+</body>
+</html>

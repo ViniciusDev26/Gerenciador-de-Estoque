@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Vendas</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .loading {
+            display: none;
+            text-align: center;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lista de Vendas</h1>
+
+        <div class="form-group">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Venda ID</th>
+                        <th>Nome do Cliente</th>
+                        <th>Data da Venda</th>
+                        <th>Valor Total</th>
+                        <th>Lucro do Produto</th>
+                        <th>Método de Pagamento</th>
+                        <th>Taxa de Entrega</th>
+                        <th>Tipo de Cliente</th>
+                    </tr>
+                </thead>
+                <tbody id="tableShowVendas">
+                    <!-- As vendas serão inseridas aqui -->
+                </tbody>
+            </table>
+            <div class="loading" id="loading">Carregando...</div>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="inicio()">Início</button>
+    </div>
+
+    <script>
+        function inicio() {
+            window.location.href = 'index.html'; 
+        }
+
+        async function carregarVendas() {
+            const tableBody = document.getElementById('tableShowVendas');
+            const loading = document.getElementById('loading');
+            
+            try {
+                loading.style.display = 'block';
+                const response = await fetch('http://localhost:5051/buscar-vendas');
+                loading.style.display = 'none';
+                if (!response.ok) throw new Error('Erro ao buscar vendas');
+                
+                const data = await response.json();
+                console.log('Vendas encontradas:', data);
+
+                tableBody.innerHTML = '';
+
+                if (data.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="9" class="text-center">Nenhuma venda encontrada</td>';
+                    tableBody.appendChild(row);
+                    return;
+                }
+
+                data.forEach(venda => {
+                    const valorTotal = Number(venda.Valor_Total);
+                    const lucroProduto = Number(venda.Lucro_Produto);
+                    const taxaEntrega = Number(venda.Taxa_Entrega);
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${venda.Venda_ID}</td>
+                        <td>${venda.Nome_cliente}</td>
+                        <td>${new Date(venda.Data_Venda).toLocaleDateString()}</td>
+                        <td>${valorTotal.toFixed(2)}</td>
+                        <td>${lucroProduto.toFixed(2)}</td>
+                        <td>${venda.Metodo_Pagamento}</td>
+                        <td>${taxaEntrega.toFixed(2)}</td>
+                        <td>${venda.Tipo_Cliente}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                loading.style.display = 'none';
+                console.error('Erro na requisição:', error.message);
+                alert('Erro ao buscar vendas');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarVendas);
+    </script>
+</body>
+</html>
