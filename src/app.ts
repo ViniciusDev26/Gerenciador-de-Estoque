@@ -1,15 +1,16 @@
-const express = require("express");
-const cors = require("cors");
-const { adicionarProduto } = require("./services/product/add-product");
-const { buscarProduto } = require("./services/product/fetch-product-by-name");
-const { listSails } = require("./services/sale/list-sails");
+import cors from "cors";
+import express, { type Request, type Response } from "express";
+import { adicionarProduto } from "./services/product/add-product";
+import { buscarProduto } from "./services/product/fetch-product-by-name";
+import { listSails } from "./services/sale/list-sails";
+import { adicionarVenda } from "./services/sale/make-sale";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.post("/adicionar-produto", async (req, res) => {
+app.post("/adicionar-produto", async (req: Request, res: Response) => {
 	const { nome_produto, quantidade_total, preco, custo } = req.body;
 
 	if (!nome_produto || !quantidade_total || !preco || !custo) {
@@ -25,7 +26,7 @@ app.post("/adicionar-produto", async (req, res) => {
 	}
 });
 
-app.get("/buscar-produto", async (req, res) => {
+app.get("/buscar-produto", async (req: Request, res: Response) => {
 	const { nome_produto } = req.query;
 
 	if (!nome_produto) {
@@ -48,7 +49,7 @@ app.get("/buscar-produto", async (req, res) => {
 	}
 });
 
-app.get("/buscar-vendas", async (req, res) => {
+app.get("/buscar-vendas", async (req: Request, res: Response) => {
 	try {
 		const vendas = listSails();
 
@@ -57,6 +58,54 @@ app.get("/buscar-vendas", async (req, res) => {
 	} catch (error) {
 		console.error("Erro ao buscar vendas:", error.message);
 		res.status(500).json({ error: "Erro ao buscar vendas" });
+	}
+});
+
+app.post("/registrar-venda", async (req: Requqest, res: Response) => {
+	const {
+		nome_cliente,
+		telefone,
+		metodo_pagamento,
+		tipo_cliente,
+		taxa_entrega,
+		valor_total,
+		produtos,
+	} = req.body;
+
+	if (
+		!nome_cliente ||
+		!telefone ||
+		!valor_total ||
+		!metodo_pagamento ||
+		!tipo_cliente ||
+		!produtos ||
+		produtos.length === 0
+	) {
+		return res.status(400).json({
+			error: "Todos os campos são obrigatórios, incluindo os produtos",
+		});
+	}
+
+	try {
+		const result = await adicionarVenda(
+			nome_cliente,
+			telefone,
+			valor_total,
+			metodo_pagamento,
+			tipo_cliente,
+			taxa_entrega,
+			produtos,
+		);
+		res.status(200).json({
+			message: "Venda registrada com sucesso",
+			vendaId: result.vendaId,
+			produtosVendidos: result.produtos,
+		});
+	} catch (error) {
+		console.error("Erro ao registrar venda:", error.message);
+		res
+			.status(500)
+			.json({ error: "Erro ao registrar venda", message: error.message });
 	}
 });
 

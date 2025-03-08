@@ -1,6 +1,10 @@
 const { knex } = require("../../config/database");
 
-async function adicionarCliente(nome_cliente, telefone, tipo_cliente) {
+export async function adicionarCliente(
+	nome_cliente: string,
+	telefone: string,
+	tipo_cliente: string,
+) {
 	const [cliente_id] = await knex("cliente").insert({
 		Nome_Cliente: nome_cliente,
 		Telefone: telefone,
@@ -8,5 +12,3 @@ async function adicionarCliente(nome_cliente, telefone, tipo_cliente) {
 	});
 	return cliente_id;
 }
-
-module.exports = { adicionarCliente };

@@ -1,5 +1,5 @@
-const { ENV } = require("./config/env");
-const { app } = require("./app");
+import { app } from "./app";
+import { ENV } from "./config/env";
 
 app.listen(ENV.PORT, () => {
 	console.log(`Servidor rodando em http://localhost:${ENV.PORT}`);

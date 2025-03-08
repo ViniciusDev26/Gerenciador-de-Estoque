@@ -1,6 +1,6 @@
 const { knex } = require("../../config/database");
 
-async function listSails() {
+export async function listSails() {
 	const sails = await knex("venda")
 		.select(
 			"Venda_ID",
@@ -17,5 +17,3 @@ async function listSails() {
 
 	return sails;
 }
-
-module.exports = { listSails };

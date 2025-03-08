@@ -1,6 +1,7 @@
-const { ENV } = require("./env");
+import knex_db from "knex";
+import { ENV } from "./env";
 
-const knex = require("knex")({
+export const knex = knex_db({
 	client: "mysql2",
 	connection: {
 		host: ENV.DATABASE.HOST,
@@ -11,5 +12,3 @@ const knex = require("knex")({
 	},
 	debug: ENV.DATABASE.DEBUG_MODE, // Habilita o modo de depuração
 });
-
-module.exports = { knex };

@@ -1,14 +1,20 @@
-const { knex } = require("../../config/database");
-const { adicionarCliente } = require("../customer/add-customer");
+import { knex } from "../../config/database";
+import { adicionarCliente } from "../customer/add-customer";
 
-async function adicionarVenda(
-	nome_cliente,
-	telefone,
-	valor_total,
-	metodo_pagamento,
-	tipo_cliente,
-	taxa_entrega,
-	produtosSelecionados,
+export async function adicionarVenda(
+	nome_cliente: string,
+	telefone: string,
+	valor_total: number,
+	metodo_pagamento: string,
+	tipo_cliente: string,
+	taxa_entrega: number,
+	produtosSelecionados: {
+		Produto_ID: number;
+		Nome_Produto: string;
+		Preco: number;
+		Custo: number;
+		quantidadeSelecionada: number;
+	}[],
 ) {
 	const data_venda = new Date().toISOString().slice(0, 10);
 	const trx = await knex.transaction();
@@ -37,9 +43,9 @@ async function adicionarVenda(
 
 		// Preparar itens vendidos
 		const itemVendaValues = produtosSelecionados.map((produto) => {
-			const preco = Number.parseFloat(produto.Preco);
-			const custo = Number.parseFloat(produto.Custo);
-			const quantidade = Number.parseInt(produto.quantidadeSelecionada, 10);
+			const preco = produto.Preco;
+			const custo = produto.Custo;
+			const quantidade = produto.quantidadeSelecionada;
 
 			if (
 				Number.isNaN(preco) ||
@@ -87,54 +93,3 @@ async function adicionarVenda(
 		throw new Error(`Erro ao registrar a venda: ${error.message}`);
 	}
 }
-
-// Rota para registrar uma venda
-app.post("/registrar-venda", async (req, res) => {
-	const {
-		nome_cliente,
-		telefone,
-		metodo_pagamento,
-		tipo_cliente,
-		taxa_entrega,
-		valor_total,
-		produtos,
-	} = req.body;
-
-	if (
-		!nome_cliente ||
-		!telefone ||
-		!valor_total ||
-		!metodo_pagamento ||
-		!tipo_cliente ||
-		!produtos ||
-		produtos.length === 0
-	) {
-		return res.status(400).json({
-			error: "Todos os campos são obrigatórios, incluindo os produtos",
-		});
-	}
-
-	try {
-		const result = await adicionarVenda(
-			nome_cliente,
-			telefone,
-			valor_total,
-			metodo_pagamento,
-			tipo_cliente,
-			taxa_entrega,
-			produtos,
-		);
-		res.status(200).json({
-			message: "Venda registrada com sucesso",
-			vendaId: result.vendaId,
-			produtosVendidos: result.produtos,
-		});
-	} catch (error) {
-		console.error("Erro ao registrar venda:", error.message);
-		res
-			.status(500)
-			.json({ error: "Erro ao registrar venda", message: error.message });
-	}
-});
-
-module.exports = { adicionarVenda };
