@@ -250,8 +250,7 @@ app.get("/buscar-vendas", async (req, res) => {
 	}
 });
 
-// Iniciar o servidor na porta 5051
-const port = 5051;
-app.listen(port, () => {
-	console.log(`Servidor rodando em http://localhost:${port}`);
+const PORT = process.env.PORT || 5051;
+app.listen(PORT, () => {
+	console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
