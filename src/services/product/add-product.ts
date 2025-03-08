@@ -1,4 +1,4 @@
-const { knex } = require("../../config/database");
+import { knex } from "../../config/database";
 
 export async function adicionarProduto(
 	nome_produto: string,

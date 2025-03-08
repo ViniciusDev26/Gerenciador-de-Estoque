@@ -1,4 +1,5 @@
 import { knex } from "../../config/database";
+import { logger } from "../../config/pino";
 import { adicionarCliente } from "../customer/add-customer";
 
 export async function adicionarVenda(
@@ -20,7 +21,6 @@ export async function adicionarVenda(
 	const trx = await knex.transaction();
 
 	try {
-		// Adicionar cliente
 		const cliente_id = await adicionarCliente(
 			nome_cliente,
 			telefone,
@@ -29,7 +29,6 @@ export async function adicionarVenda(
 
 		let lucro_produto = 0;
 
-		// Inserir a venda
 		const [vendaId] = await trx("Venda").insert({
 			Cliente_ID: cliente_id,
 			Data_Venda: data_venda,
@@ -41,7 +40,6 @@ export async function adicionarVenda(
 			Tipo_Cliente: tipo_cliente,
 		});
 
-		// Preparar itens vendidos
 		const itemVendaValues = produtosSelecionados.map((produto) => {
 			const preco = produto.Preco;
 			const custo = produto.Custo;
@@ -69,27 +67,25 @@ export async function adicionarVenda(
 			};
 		});
 
-		// Atualizar o lucro total da venda
 		await trx("Venda")
 			.where("Venda_ID", vendaId)
 			.update({ Lucro_Produto: lucro_produto });
 
-		// Inserir os itens vendidos
 		await trx("Item_Venda").insert(itemVendaValues);
 
-		// Atualizar o estoque
 		for (const produto of produtosSelecionados) {
 			await trx("Estoque")
 				.where("Produto_ID", produto.Produto_ID)
 				.decrement("Quantidade_Total", produto.quantidadeSelecionada);
 		}
 
-		// Confirmar a transação
 		await trx.commit();
 
 		return { vendaId, produtos: produtosSelecionados };
 	} catch (error) {
+		const err = error as Error;
 		await trx.rollback();
-		throw new Error(`Erro ao registrar a venda: ${error.message}`);
+		logger.error(`Erro ao registrar a venda: ${err.message}`);
+		throw new Error("Erro ao registrar a venda");
 	}
 }
