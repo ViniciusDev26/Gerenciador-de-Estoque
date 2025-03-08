@@ -1,13 +1,15 @@
+const { ENV } = require("./env");
+
 const knex = require("knex")({
 	client: "mysql2",
 	connection: {
-		host: process.env.DB_HOST,
-		port: process.env.DB_PORT,
-		user: process.env.DB_USER,
-		password: process.env.DB_PASSWORD,
-		database: process.env.DB_NAME,
+		host: ENV.DATABASE.HOST,
+		port: ENV.DATABASE.PORT,
+		user: ENV.DATABASE.USER,
+		password: ENV.DATABASE.PASSWORD,
+		database: ENV.DATABASE.NAME,
 	},
-	debug: true, // Habilita o modo de depuração
+	debug: ENV.DATABASE.DEBUG_MODE, // Habilita o modo de depuração
 });
 
 module.exports = { knex };
