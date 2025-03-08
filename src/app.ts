@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import morgan from "morgan";
 import { logger } from "./config/pino";
 import { adicionarProduto } from "./services/product/add-product";
 import { buscarProduto } from "./services/product/fetch-product-by-name";
@@ -10,6 +11,7 @@ export const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
 
 app.post("/adicionar-produto", async (req, res) => {
 	const { nome_produto, quantidade_total, preco, custo } = req.body;
